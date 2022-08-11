@@ -1,1 +1,40 @@
-Hello World
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Movie Theater</title>
+        <link rel="stylesheet" href="index.css">
+        <script src="index.js" type="module"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LF68BM80LP"></script>
+    </head>
+    <body>
+        <header>
+            <video controls preload autopictureinpicture src="movies/Condor Heroes/Heavenly Sword and Dragon Saber/[Jiang Hu] Heavenly Sword and Dragon Saber 2009 ep01.mp4"></video>
+        </header>
+        <main>
+            <fieldset>
+                <legend><h2>Music Library</h2></legend>
+                <audio controls preload loop></audio>
+                <nav></nav>
+            </fieldset>
+        </main>
+        <footer>
+            <fieldset>
+                <legend><h2>Add Music</h2></legend>
+                <form onsubmit="addMusic(event)">
+                    <select name="category">
+                        <option>THonly</option>
+                        <option>Sisamuth</option>
+                        <option selected>Anime</option>
+                        <option>Pop</option>
+                        <option>Foreign</option>
+                    </select>
+                    <input name="videoID" type="input" placeholder="Video ID" required>
+                    <br><br>
+                    <button type="submit">Download</button>
+                    <button type="button" onclick="getMusicLibrary()">Refresh Music Library</button>
+                </form>
+            </fieldset>
+            <h6>HeartBank®</h6>
+        </footer>
+    </body>
+</html>

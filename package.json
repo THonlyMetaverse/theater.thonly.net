@@ -1,0 +1,23 @@
+{
+  "name": "theater.thonly.net",
+  "version": "1.0.0",
+  "description": "Movie Theater",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "sudo nodemon index.mjs",
+    "test": "node mp4.mjs",
+    "renew": "sudo certbot --manual --preferred-challenges dns certonly -d dns.thonly.net",
+    "copy1": "sudo cp /etc/letsencrypt/live/dns.thonly.net/fullchain.pem /Users/heartbank/Desktop/HeartBank®/THonly™/thonly.net/music.thonly.net",
+    "copy2": "sudo cp /etc/letsencrypt/live/dns.thonly.net/privkey.pem /Users/heartbank/Desktop/HeartBank®/THonly™/thonly.net/music.thonly.net"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/THonlyMetaverse/theater.thonly.net.git"
+  },
+  "author": "THonly™",
+  "license": "HeartBank®",
+  "bugs": {
+    "url": "https://github.com/THonlyMetaverse/theater.thonly.net/issues"
+  },
+  "homepage": "https://github.com/THonlyMetaverse/theater.thonly.net#readme"
+}
