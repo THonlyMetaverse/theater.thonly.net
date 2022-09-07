@@ -1,6 +1,3 @@
-import fs from 'fs';
-import { exec } from "child_process";
-
 function getPath(path) {
     return path.replace(/[-\s\|\&\(\)]/g, '\\$&');
 }

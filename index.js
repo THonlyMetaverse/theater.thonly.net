@@ -1,7 +1,7 @@
 import "/components/to-theater/element.mjs";
 import "/components/to-movies/element.mjs";
 import "/components/to-shows/element.mjs";
-import "/components/to-body/element.mjs";
+import "/components/to-provider/element.mjs";
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
