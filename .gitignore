@@ -2,5 +2,5 @@
 node_modules
 package-lock.json
 private
-library/movies
-library/shows
+**/*.mp4
+**/*.mkv
