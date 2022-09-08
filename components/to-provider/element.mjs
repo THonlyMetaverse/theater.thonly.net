@@ -32,6 +32,10 @@ class ToProvider extends HTMLElement {
         this.#store.current = {};
         this.#store.movies = data.movies;
         this.#store.shows = data.shows;
+
+        console.log(this.#store);
+        localStorage.setItem('store', JSON.stringify(this.#store));
+        this.#createDatabase();
     }
 
     connectedCallback() {
@@ -83,10 +87,22 @@ class ToProvider extends HTMLElement {
                 break;
         }
 
-        localStorage.setItem('store', JSON.parse(this.#store));
+        localStorage.setItem('store', JSON.stringify(this.#store));
     }
 
     #middleware() {}
+
+    #createDatabase() {
+        const request = indexedDB.open("MyTestDatabase");
+
+        request.onerror = (event) => {
+            console.error("Why didn't you allow my web app to use IndexedDB?!");
+        };
+
+        request.onsuccess = (event) => {
+            console.log(event.target.result);
+        };
+    }
 }
 
 customElements.define("to-provider", ToProvider);
