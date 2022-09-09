@@ -1,5 +1,6 @@
 import fs from 'fs';
 
+//TODO: later save metada into video file?
 export async function getLibrary(media) { // movies or shows
     const collections = {};
     const library = fs.opendirSync('library/' + media);
@@ -31,21 +32,25 @@ export async function getLibrary(media) { // movies or shows
 }
 
 async function getMovie(title, path) {
-    const movie = {};
+    const { default: meta } = await import("../" + path + "/meta.mjs");
+    const movie = { ...meta };
+    movie.id = path;
     movie.title = title;
     movie.film = path + "/film.mp4";
     movie.poster = path + "/poster.jpg";
     movie.english = fs.existsSync(path + "/english.srt") ? path + "/english.srt" : null;
-    ({ default: movie.meta } = await import("../" + path + "/meta.mjs"));
+    //({ default: movie.meta } = await import("../" + path + "/meta.mjs"));
     return movie;
 }
 
 async function getShow(title, path) {
-    const show = {};
+    const { default: meta } = await import("../" + path + "/meta.mjs");
+    const show = { ...meta };
+    show.id = path;
     show.title = title;
     show.path = path;
     show.poster = path + "/poster.jpg";
-    ({ default: show.meta } = await import("../" + path + "/meta.mjs"));
+    //({ default: show.meta } = await import("../" + path + "/meta.mjs"));
     return show;
 }
 

@@ -1,15 +1,13 @@
 import template from "./template.mjs";
+import Database from "./database.mjs";
 
 class ToProvider extends HTMLElement {
-    #store = {
-        current: {
-            category: null, //movie or show
-            pointer: null,
-            time: null,
-            volume: null
-        },
-        movies: [],
-        shows: []
+    #db;
+    #store = { // current
+        category: null, // movie or show
+        pointer: null,
+        time: null,
+        volume: null
     };
 
     #theaterComponent;
@@ -26,19 +24,8 @@ class ToProvider extends HTMLElement {
         this.#showsComponent = this.querySelector('to-shows');
     }
 
-    async refreshLibrary() {
-        const response = await fetch('https://dns.thonly.net:444/');
-        const data = await response.json();
-        this.#store.current = {};
-        this.#store.movies = data.movies;
-        this.#store.shows = data.shows;
-
-        console.log(this.#store);
-        localStorage.setItem('store', JSON.stringify(this.#store));
-        this.#createDatabase();
-    }
-
     connectedCallback() {
+        this.#db = new Database("Library");
         this.#createStore();
         this.#connect();
     }
@@ -92,16 +79,31 @@ class ToProvider extends HTMLElement {
 
     #middleware() {}
 
-    #createDatabase() {
-        const request = indexedDB.open("MyTestDatabase");
+    async refreshLibrary() {
+        const response = await fetch('https://dns.thonly.net:444/');
+        const data = await response.json();
+        this.#store.current = {};
+        this.#store.movies = data.movies;
+        this.#store.shows = data.shows;
 
-        request.onerror = (event) => {
-            console.error("Why didn't you allow my web app to use IndexedDB?!");
-        };
+        console.log(this.#store);
+        localStorage.setItem('store', JSON.stringify(this.#store));
+    }
 
-        request.onsuccess = (event) => {
-            console.log(event.target.result);
-        };
+    test() {
+        const movies = this.#db.getObjectStore("movies", 'readwrite');
+        const shows = this.#db.getObjectStore("shows", 'readwrite');
+        //this.db.addEntry(movies, {id: "1", title: "Avatar"}, event => console.log(event));
+        //this.db.addEntry(movies, {id: "2", title: "Avatar"}, console.log);
+        //this.db.updateEntry(movies, {id: "3", title: "Avatar 2"}, console.log);
+        //this.db.getEntry(movies, "2", console.log);
+        //this.db.searchForEntry(movies, "title", "Avatar", console.log);
+        //this.db.searchForEntries(movies, "title", "Avatar 2", console.log, "nextunique");
+        //this.db.getCount(movies, console.log);
+        //this.db.getAllEntries(movies, console.log);
+        //this.db.getEntries(movies, console.log);
+        //this.db.deleteEntry(movies, "1", console.log);
+        //this.db.clearObjectStore(movies, console.log);
     }
 }
 
