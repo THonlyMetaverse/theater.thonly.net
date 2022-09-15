@@ -31,38 +31,38 @@ export default class {
         return names.map(name => transaction.objectStore(name));
     }
 
-    addEntry(store, entry, callback) {
+    addEntry(store, entry, callback=console.log) {
         const req = store.add(entry); 
         req.onsuccess = event => callback(event.target.result); // returns key
         req.onerror = event => console.error(event.target.error); // cannot update
     }
 
-    updateEntry(store, entry, callback) {
+    updateEntry(store, entry, callback=console.log) {
         const req = store.put(entry);
         req.onsuccess = event => callback(event.target.result); // can add too! => returns key
         req.onerror = event => console.error(event.target.error);
     }
 
-    getCount(store, callback) {
+    getCount(store, callback=console.log) {
         const req = store.count();
         req.onsuccess = event => callback(event.target.result);
         req.onerror = event => console.error(event.target.error);
     }
 
-    getEntry(store, key, callback) {
+    getEntry(store, key, callback=console.log) {
         const req = store.get(key); 
         req.onsuccess = event => callback(event.target.result); // if no key => undefined
         req.onerror = event => console.error(event.target.error);
     }
 
     // more performant
-    searchForEntry(store, property, value, callback) {
+    searchForEntry(store, property, value, callback=console.log) {
         const req = store.index(property).get(value); // if multiple => lowest key
         req.onsuccess = event => callback(event.target.result); // if none => undefined
         req.onerror = event => console.error(event.target.error);
     }
 
-    getAllEntries(store, callback) {
+    getAllEntries(store, callback=console.log) {
         const req = store.getAll(); 
         req.onsuccess = event => callback(event.target.result); // array of entries
         req.onerror = event => console.error(event.target.error);
@@ -76,7 +76,7 @@ export default class {
     }
 
     // more efficient
-    getEntries(store, callback, range=null, direction="next") {
+    getEntries(store, callback=console.log, range=null, direction="next") {
         const req = store.openCursor(range, direction); // direction: next, prev // nextunique, prevunique => lowest key
         req.onerror = event => console.error(event.target.error);
 
@@ -95,7 +95,7 @@ export default class {
     }
 
     // more performant
-    searchForEntries(store, property, value, callback, direction="next") {
+    searchForEntries(store, property, value, callback=console.log, direction="next") {
         const req = store.index(property).openCursor(IDBKeyRange.only(value), direction); // can also use openKeyCursor() => key property
         req.onerror = event => console.error(event.target.error);
 
@@ -108,13 +108,13 @@ export default class {
         };
     }
     
-    deleteEntry(store, key, callback) {
+    deleteEntry(store, key, callback=console.log) {
         const req = store.delete(key); 
         req.onsuccess = event => callback(event.type); // okay even if no key exists => success
         req.onerror = event => console.error(event.target.error);
     }
 
-    clearObjectStore(store, callback) {
+    clearObjectStore(store, callback=console.log) {
         const req = store.clear(); 
         req.onsuccess = event => callback(event.type); // all entries are deleted => success
         req.onerror = event => console.error(event.target.error);

@@ -47,7 +47,7 @@ async function getShow(title, path) {
     const { default: meta } = await import("../" + path + "/meta.mjs");
     const show = { ...meta };
     show.id = path;
-    show.title = title;
+    show.title = title; // season title
     show.path = path;
     show.poster = path + "/poster.jpg";
     //({ default: show.meta } = await import("../" + path + "/meta.mjs"));
