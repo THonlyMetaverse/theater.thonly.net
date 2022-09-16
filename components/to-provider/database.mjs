@@ -4,21 +4,28 @@ export default class {
     db;
 
     constructor(name, version=1) {
-        const req = indexedDB.open(name, version);
-        req.onerror = event => console.error(event.target.error);
-        req.onsuccess = event => this.db = event.target.result;
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open(name, version);
+            req.oncomplete = event => resolve(this);
+            req.onerror = event => reject(event.target.error);
 
-        req.onupgradeneeded = event => {
-            this.db = event.target.result;
-
-            const movies = this.db.createObjectStore("movies", { keyPath: 'id' });
-            movies.createIndex('title', 'title', { unique: false });
-            movies.createIndex('year', 'year', { unique: false });
-            
-            const shows = this.db.createObjectStore("shows", { keyPath: 'id' });
-            shows.createIndex('title', 'title', { unique: false });
-            shows.createIndex('year', 'year', { unique: false });
-        };
+            req.onsuccess = event => {
+                this.db = event.target.result;
+                resolve(this);
+            };
+    
+            req.onupgradeneeded = event => {
+                this.db = event.target.result;
+    
+                const movies = this.db.createObjectStore("movies", { keyPath: 'id' });
+                movies.createIndex('title', 'title', { unique: false });
+                movies.createIndex('year', 'year', { unique: false });
+                
+                const shows = this.db.createObjectStore("shows", { keyPath: 'id' });
+                shows.createIndex('title', 'title', { unique: false });
+                shows.createIndex('year', 'year', { unique: false });    
+            };
+        });
     }
 
     getObjectStore(name, mode) { // mode = readwrite, readonly = more performant
@@ -31,41 +38,53 @@ export default class {
         return names.map(name => transaction.objectStore(name));
     }
 
-    addEntry(store, entry, callback=console.log) {
-        const req = store.add(entry); 
-        req.onsuccess = event => callback(event.target.result); // returns key
-        req.onerror = event => console.error(event.target.error); // cannot update
+    addEntry(store, entry) {
+        return new Promise((resolve, reject) => {
+            const req = store.add(entry); 
+            req.onsuccess = event => resolve(event.target.result); // returns key
+            req.onerror = event => reject(event.target.error); // cannot update
+        });
     }
 
-    updateEntry(store, entry, callback=console.log) {
-        const req = store.put(entry);
-        req.onsuccess = event => callback(event.target.result); // can add too! => returns key
-        req.onerror = event => console.error(event.target.error);
+    updateEntry(store, entry) {
+        return new Promise((resolve, reject) => {
+            const req = store.put(entry);
+            req.onsuccess = event => resolve(event.target.result); // can add too! => returns key
+            req.onerror = event => reject(event.target.error);
+        });
     }
 
-    getCount(store, callback=console.log) {
-        const req = store.count();
-        req.onsuccess = event => callback(event.target.result);
-        req.onerror = event => console.error(event.target.error);
+    getCount(store) {
+        return new Promise((resolve, reject) => {
+            const req = store.count();
+            req.onsuccess = event => resolve(event.target.result);
+            req.onerror = event => reject(event.target.error);
+        });
     }
 
-    getEntry(store, key, callback=console.log) {
-        const req = store.get(key); 
-        req.onsuccess = event => callback(event.target.result); // if no key => undefined
-        req.onerror = event => console.error(event.target.error);
+    getEntry(store, key) {
+        return new Promise((resolve, reject) => {
+            const req = store.get(key); 
+            req.onsuccess = event => resolve(event.target.result); // if no key => undefined
+            req.onerror = event => reject(event.target.error);
+        });
     }
 
     // more performant
-    searchForEntry(store, property, value, callback=console.log) {
-        const req = store.index(property).get(value); // if multiple => lowest key
-        req.onsuccess = event => callback(event.target.result); // if none => undefined
-        req.onerror = event => console.error(event.target.error);
+    searchForEntry(store, property, value) {
+        return new Promise((resolve, reject) => {
+            const req = store.index(property).get(value); // if multiple => lowest key
+            req.onsuccess = event => resolve(event.target.result); // if none => undefined
+            req.onerror = event => reject(event.target.error);
+        });
     }
 
-    getAllEntries(store, callback=console.log) {
-        const req = store.getAll(); 
-        req.onsuccess = event => callback(event.target.result); // array of entries
-        req.onerror = event => console.error(event.target.error);
+    getAllEntries(store) {
+        return new Promise((resolve, reject) => {
+            const req = store.getAll(); 
+            req.onsuccess = event => resolve(event.target.result); // array of entries
+            req.onerror = event => reject(event.target.error);
+        });
     }
 
     getRange({ lowerBound, upperBound }) {
@@ -76,47 +95,57 @@ export default class {
     }
 
     // more efficient
-    getEntries(store, callback=console.log, range=null, direction="next") {
-        const req = store.openCursor(range, direction); // direction: next, prev // nextunique, prevunique => lowest key
-        req.onerror = event => console.error(event.target.error);
+    getEntries(store, range=null, direction="next") {
+        return new Promise((resolve, reject) => {
+            const entries = []; 
+            const req = store.openCursor(range, direction); // direction: next, prev // nextunique, prevunique => lowest key
+            req.onerror = event => reject(event.target.error);
 
-        req.onsuccess = event => {
-            const cursor = event.target.result;
-            if (cursor) {
-                const entry = store.get(cursor.key);
-                entry.onerror = event => console.error(event.target.error);
+            req.onsuccess = event => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const entry = store.get(cursor.key);
+                    entry.onerror = event => reject(event.target.error);
 
-                entry.onsuccess = event => {
-                    callback(event.target.result);   
-                    cursor.continue();
-                };
-            } else console.log("No more entries");
-        };
+                    entry.onsuccess = event => {
+                        entries.push(event.target.result);
+                        cursor.continue();
+                    };
+                } else resolve(entries);
+            };
+        });
     }
 
     // more performant
-    searchForEntries(store, property, value, callback=console.log, direction="next") {
-        const req = store.index(property).openCursor(IDBKeyRange.only(value), direction); // can also use openKeyCursor() => key property
-        req.onerror = event => console.error(event.target.error);
+    searchForEntries(store, property, value, direction="next") {
+        return new Promise((resolve, reject) => {
+            const entries = []; 
+            const req = store.index(property).openCursor(IDBKeyRange.only(value), direction); // can also use openKeyCursor() => key property
+            req.onerror = event => reject(event.target.error);
 
-        req.onsuccess = event => {
-            const cursor = event.target.result;
-            if (cursor) {
-                callback(cursor.value);   
-                cursor.continue();
-            } else console.log("No more entries");
-        };
+            req.onsuccess = event => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    entries.push(cursor.value);   
+                    cursor.continue();
+                } else resolve(entries);
+            };
+        });
     }
     
-    deleteEntry(store, key, callback=console.log) {
-        const req = store.delete(key); 
-        req.onsuccess = event => callback(event.type); // okay even if no key exists => success
-        req.onerror = event => console.error(event.target.error);
+    deleteEntry(store, key) {
+        return new Promise((resolve, reject) => {
+            const req = store.delete(key); 
+            req.onsuccess = event => resolve(event.type); // okay even if no key exists => success
+            req.onerror = event => reject(event.target.error);
+        });
     }
 
-    clearObjectStore(store, callback=console.log) {
-        const req = store.clear(); 
-        req.onsuccess = event => callback(event.type); // all entries are deleted => success
-        req.onerror = event => console.error(event.target.error);
+    clearObjectStore(store) {
+        return new Promise((resolve, reject) => {
+            const req = store.clear(); 
+            req.onsuccess = event => resolve(event.type); // all entries are deleted => success
+            req.onerror = event => reject(event.target.error);
+        });
     }
 }

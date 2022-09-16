@@ -24,18 +24,18 @@ class ToProvider extends HTMLElement {
         this.#showsComponent = this.querySelector('to-shows');
     }
 
-    connectedCallback() {
-        this.#db = new Database("Library");
+    async connectedCallback() {
+        this.#db = await new Database("Library");
         this.#createStore();
         this.#connect();
     }
 
-    #createStore() {
+    async #createStore() {
         this.#store = localStorage.getItem('store') ? JSON.parse(localStorage.getItem('store')) : this.#store;
 
-        this.#theaterComponent.render(this.#store, this.#selection);
-        this.#moviesComponent.render(this.#store, this.#movies);
-        this.#showsComponent.render(this.#store, this.#shows);
+        this.#theaterComponent.render(this.#store, await this.#selection);
+        this.#moviesComponent.render(this.#store, await this.#movies);
+        this.#showsComponent.render(this.#store, await this.#shows);
     }
 
     #connect() {
@@ -91,19 +91,36 @@ class ToProvider extends HTMLElement {
     }
 
     get #selection() {
-        if (this.#store.pointer) return this.#db.getEntry(this.#db.getObjectStore(this.#store.category, 'readonly'), this.#store.pointer);
-        return null;
+        return (async () => {
+            if (this.#store.pointer) return await this.#db.getEntry(this.#db.getObjectStore(this.#store.category, 'readonly'), this.#store.pointer);
+            return null;
+        })();
     }
 
     get #movies() {
-        return this.#db.getAllEntries(this.#db.getObjectStore("movies", 'readonly'));
+        return (async () => await this.#db.getAllEntries(this.#db.getObjectStore("movies", 'readonly')))();
     }
 
     get #shows() {
-        return this.#db.getAllEntries(this.#db.getObjectStore("shows", 'readonly'));
+        return (async () => await this.#db.getAllEntries(this.#db.getObjectStore("shows", 'readonly')))();
     }
 
-    test() {
+    async test() {
+        const movies = this.#db.getObjectStore("movies", 'readwrite');
+        console.log(await this.#db.addEntry(movies, {id: "1", title: "Avatar"}));
+        console.log(await this.#db.addEntry(movies, {id: "2", title: "Avatar"}));
+        console.log(await this.#db.updateEntry(movies, {id: "3", title: "Avatar 2"}));
+        console.log(await this.#db.getEntry(movies, "2"));
+        console.log(await this.#db.searchForEntry(movies, "title", "Avatar"));
+        console.log(await this.#db.searchForEntries(movies, "title", "Avatar 2", "nextunique"));
+        console.log(await this.#db.getCount(movies));
+        console.log(await this.#db.getAllEntries(movies));
+        console.log(await this.#db.getEntries(movies));
+        console.log(await this.#db.deleteEntry(movies, "1"));
+        console.log(await this.#db.clearObjectStore(movies));
+    }
+
+    test2() {
         const movies = this.#db.getObjectStore("movies", 'readwrite');
         this.#db.addEntry(movies, {id: "1", title: "Avatar"}, event => console.log(event));
         this.#db.addEntry(movies, {id: "2", title: "Avatar"}, console.log);
