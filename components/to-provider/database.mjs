@@ -62,6 +62,7 @@ export default class {
         });
     }
 
+    // efficient
     getEntry(store, key) {
         return new Promise((resolve, reject) => {
             const req = store.get(key); 
@@ -70,7 +71,7 @@ export default class {
         });
     }
 
-    // more performant
+    // performant
     searchForEntry(store, property, value) {
         return new Promise((resolve, reject) => {
             const req = store.index(property).get(value); // if multiple => lowest key
@@ -87,6 +88,23 @@ export default class {
         });
     }
 
+    // more performant
+    getAllEntriesViaIndex(store, property, direction="next") {
+        return new Promise((resolve, reject) => {
+            const entries = []; 
+            const req = store.index(property).openCursor(null, direction);
+            req.onerror = event => reject(event.target.error);
+
+            req.onsuccess = event => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    entries.push(cursor.value);   
+                    cursor.continue();
+                } else resolve(entries);
+            };
+        });
+    }
+
     getRange({ lowerBound, upperBound }) {
         if (lowerBound && upperBound) return IDBKeyRange.bound(lowerBound.value, upperBound.value, !lowerBound.include, !upperBound.include)
         else if (lowerBound) return IDBKeyRange.lowerBound(lowerBound.value, !lowerBound.include)
@@ -94,8 +112,8 @@ export default class {
         else return null;
     }
 
-    // more efficient
-    getEntries(store, range=null, direction="next") {
+    // efficient
+    searchForEntries(store, range=null, direction="next") {
         return new Promise((resolve, reject) => {
             const entries = []; 
             const req = store.openCursor(range, direction); // direction: next, prev // nextunique, prevunique => lowest key
@@ -117,7 +135,7 @@ export default class {
     }
 
     // more performant
-    searchForEntries(store, property, value, direction="next") {
+    searchForEntriesViaIndex(store, property, value, direction="next") {
         return new Promise((resolve, reject) => {
             const entries = []; 
             const req = store.index(property).openCursor(IDBKeyRange.only(value), direction); // can also use openKeyCursor() => key property

@@ -98,11 +98,11 @@ class ToProvider extends HTMLElement {
     }
 
     get #movies() {
-        return (async () => await this.#db.getAllEntries(this.#db.getObjectStore("movies", 'readonly')))();
+        return (async () => await this.#db.getAllEntriesViaIndex(this.#db.getObjectStore("movies", 'readonly'), "title"))();
     }
 
     get #shows() {
-        return (async () => await this.#db.getAllEntries(this.#db.getObjectStore("shows", 'readonly')))();
+        return (async () => await this.#db.getAllEntriesViaIndex(this.#db.getObjectStore("shows", 'readonly'), "title"))();
     }
 
     async test() {
