@@ -1,9 +1,9 @@
 //https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
 
-export default class {
+export default class {    
     db;
 
-    constructor(name, version=1) {
+    constructor(name, keyPath=null, stores=null, indexes=null, version=1) {
         return new Promise((resolve, reject) => {
             const req = indexedDB.open(name, version);
             req.oncomplete = event => resolve(this);
@@ -16,14 +16,10 @@ export default class {
     
             req.onupgradeneeded = event => {
                 this.db = event.target.result;
-    
-                const movies = this.db.createObjectStore("movies", { keyPath: 'id' });
-                movies.createIndex('title', 'title', { unique: false });
-                movies.createIndex('year', 'year', { unique: false });
-                
-                const shows = this.db.createObjectStore("shows", { keyPath: 'id' });
-                shows.createIndex('title', 'title', { unique: false });
-                shows.createIndex('year', 'year', { unique: false });    
+                stores.forEach(store => {
+                    const objectStore = this.db.createObjectStore(store, { keyPath });
+                    indexes.forEach(index => objectStore.createIndex(index, index, { unique: false }));
+                });  
             };
         });
     }

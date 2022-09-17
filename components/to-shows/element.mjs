@@ -7,8 +7,8 @@ class ToShows extends HTMLElement {
         this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
 
-    render() {
-
+    render(store, shows) {
+        console.log(shows)
     }
 
     #dispatch(selection) {

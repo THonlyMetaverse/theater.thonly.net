@@ -2,10 +2,12 @@ import template from "./template.mjs";
 import Database from "./database.mjs";
 
 class ToProvider extends HTMLElement {
-    #db;
+    #Movies;
+    #Shows;
     #store = { // current
-        category: null, // movie or show
-        pointer: null,
+        database: null, // movies or shows
+        store: null,
+        id: null,
         time: null,
         volume: null
     };
@@ -25,9 +27,19 @@ class ToProvider extends HTMLElement {
     }
 
     async connectedCallback() {
-        this.#db = await new Database("Library");
-        this.#createStore();
         this.#connect();
+        const databases = await indexedDB.databases();
+        if (databases.length !== 0) {
+            this.#Movies = await new Database(databases[0].name);
+            this.#Shows = await new Database(databases[1].name);
+            this.#createStore();
+        }
+    }
+
+    #connect() {
+        this.#theaterComponent.addEventListener('to-theater', event => this.#reducers("theater", event.detail.action, event.detail.data));
+        this.#theaterComponent.addEventListener('to-movies', event => this.#reducers("movies", event.detail.action, event.detail.data));
+        this.#theaterComponent.addEventListener('to-shows', event => this.#reducers("shows", event.detail.action, event.detail.data));
     }
 
     async #createStore() {
@@ -36,12 +48,6 @@ class ToProvider extends HTMLElement {
         this.#theaterComponent.render(this.#store, await this.#selection);
         this.#moviesComponent.render(this.#store, await this.#movies);
         this.#showsComponent.render(this.#store, await this.#shows);
-    }
-
-    #connect() {
-        this.#theaterComponent.addEventListener('to-theater', event => this.#reducers("theater", event.detail.action, event.detail.data));
-        this.#theaterComponent.addEventListener('to-movies', event => this.#reducers("movies", event.detail.action, event.detail.data));
-        this.#theaterComponent.addEventListener('to-shows', event => this.#reducers("shows", event.detail.action, event.detail.data));
     }
 
     #reducers(component, action, data) {
@@ -82,57 +88,74 @@ class ToProvider extends HTMLElement {
     async refreshLibrary() {
         const response = await fetch('https://dns.thonly.net:444/');
         const data = await response.json();
-    
-        const movies = this.#db.getObjectStore("movies", 'readwrite');
-        const shows = this.#db.getObjectStore("shows", 'readwrite');
 
-        Object.keys(data.movies).forEach(genre => data.movies[genre].forEach(movie => this.#db.updateEntry(movies, { genre, ...movie })));
-        Object.keys(data.shows).forEach(show => data.shows[show].forEach(season => this.#db.updateEntry(shows, { show, ...season })));
+        this.#Movies = await new Database("Movies", "id", Object.keys(data.movies), ["title", "year"]);
+        this.#Shows = await new Database("Shows", "id", Object.keys(data.shows), ["title", "year"]);
+
+        for (let genre of this.#Movies.db.objectStoreNames) {
+            data.movies[genre].forEach(movie => this.#Movies.updateEntry(this.#Movies.getObjectStore(genre, 'readwrite'), { genre, ...movie }));
+        }
+
+        for (let show of this.#Shows.db.objectStoreNames) {
+            data.shows[show].forEach(season => this.#Shows.updateEntry(this.#Shows.getObjectStore(show, 'readwrite'), { show, ...season }));
+        }   
     }
 
     get #selection() {
         return (async () => {
-            if (this.#store.pointer) return await this.#db.getEntry(this.#db.getObjectStore(this.#store.category, 'readonly'), this.#store.pointer);
+            if (this.#store.id) return this.#store.database === "movies" ? await this.#Movies.getEntry(this.#Movies.getObjectStore(this.#store.store, 'readonly'), this.#store.id) : await this.#Shows.getEntry(this.#Shows.getObjectStore(this.#store.store, 'readonly'), this.#store.id);
             return null;
         })();
     }
 
     get #movies() {
-        return (async () => await this.#db.getAllEntriesViaIndex(this.#db.getObjectStore("movies", 'readonly'), "title"))();
+        return (async () => {
+            const movies = [];
+            [...this.#Movies.db.objectStoreNames].sort().forEach(genre => {
+                movies.push(this.#Movies.getAllEntriesViaIndex(this.#Movies.getObjectStore(genre, 'readonly'), "title"));
+            });
+            return (await Promise.allSettled(movies)).map(collection => collection.value);
+        })();
     }
 
     get #shows() {
-        return (async () => await this.#db.getAllEntriesViaIndex(this.#db.getObjectStore("shows", 'readonly'), "title"))();
+        return (async () => {
+            const shows = [];
+            [...this.#Shows.db.objectStoreNames].sort().forEach(show => {
+                shows.push(this.#Shows.getAllEntriesViaIndex(this.#Shows.getObjectStore(show, 'readonly'), "title"));
+            });
+            return (await Promise.allSettled(shows)).map(collection => collection.value);
+        })();
     }
 
     async test() {
-        const movies = this.#db.getObjectStore("movies", 'readwrite');
-        console.log(await this.#db.addEntry(movies, {id: "1", title: "Avatar"}));
-        console.log(await this.#db.addEntry(movies, {id: "2", title: "Avatar"}));
-        console.log(await this.#db.updateEntry(movies, {id: "3", title: "Avatar 2"}));
-        console.log(await this.#db.getEntry(movies, "2"));
-        console.log(await this.#db.searchForEntry(movies, "title", "Avatar"));
-        console.log(await this.#db.searchForEntries(movies, "title", "Avatar 2", "nextunique"));
-        console.log(await this.#db.getCount(movies));
-        console.log(await this.#db.getAllEntries(movies));
-        console.log(await this.#db.getEntries(movies));
-        console.log(await this.#db.deleteEntry(movies, "1"));
-        console.log(await this.#db.clearObjectStore(movies));
+        const movies = this.#Movies.getObjectStore("Anime", 'readwrite');
+        console.log(await this.#Movies.addEntry(movies, {id: "1", title: "Avatar"}));
+        console.log(await this.#Movies.addEntry(movies, {id: "2", title: "Avatar"}));
+        console.log(await this.#Movies.updateEntry(movies, {id: "3", title: "Avatar 2"}));
+        console.log(await this.#Movies.getEntry(movies, "2"));
+        console.log(await this.#Movies.searchForEntry(movies, "title", "Avatar"));
+        console.log(await this.#Movies.searchForEntries(movies, "title", "Avatar 2", "nextunique"));
+        console.log(await this.#Movies.getCount(movies));
+        console.log(await this.#Movies.getAllEntries(movies));
+        console.log(await this.#Movies.getEntries(movies));
+        console.log(await this.#Movies.deleteEntry(movies, "1"));
+        console.log(await this.#Movies.clearObjectStore(movies));
     }
 
     test2() {
-        const movies = this.#db.getObjectStore("movies", 'readwrite');
-        this.#db.addEntry(movies, {id: "1", title: "Avatar"}, event => console.log(event));
-        this.#db.addEntry(movies, {id: "2", title: "Avatar"}, console.log);
-        this.#db.updateEntry(movies, {id: "3", title: "Avatar 2"}, console.log);
-        this.#db.getEntry(movies, "2", console.log);
-        this.#db.searchForEntry(movies, "title", "Avatar", console.log);
-        this.#db.searchForEntries(movies, "title", "Avatar 2", console.log, "nextunique");
-        this.#db.getCount(movies, console.log);
-        this.#db.getAllEntries(movies, console.log);
-        this.#db.getEntries(movies, console.log);
-        this.#db.deleteEntry(movies, "1", console.log);
-        this.#db.clearObjectStore(movies, console.log);
+        const movies = this.#Movies.getObjectStore("Anime", 'readwrite');
+        this.#Movies.addEntry(movies, {id: "1", title: "Avatar"}, event => console.log(event));
+        this.#Movies.addEntry(movies, {id: "2", title: "Avatar"}, console.log);
+        this.#Movies.updateEntry(movies, {id: "3", title: "Avatar 2"}, console.log);
+        this.#Movies.getEntry(movies, "2", console.log);
+        this.#Movies.searchForEntry(movies, "title", "Avatar", console.log);
+        this.#Movies.searchForEntries(movies, "title", "Avatar 2", console.log, "nextunique");
+        this.#Movies.getCount(movies, console.log);
+        this.#Movies.getAllEntries(movies, console.log);
+        this.#Movies.getEntries(movies, console.log);
+        this.#Movies.deleteEntry(movies, "1", console.log);
+        this.#Movies.clearObjectStore(movies, console.log);
     }
 }
 
