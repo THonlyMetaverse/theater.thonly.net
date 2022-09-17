@@ -99,6 +99,8 @@ class ToProvider extends HTMLElement {
         for (let show of this.#Shows.db.objectStoreNames) {
             data.shows[show].forEach(season => this.#Shows.updateEntry(this.#Shows.getObjectStore(show, 'readwrite'), { show, ...season }));
         }   
+        
+        this.#createStore();
     }
 
     get #selection() {

@@ -9,18 +9,28 @@ class ToShows extends HTMLElement {
 
     render(store, shows) {
         console.log(shows)
+        const nav = this.shadowRoot.querySelector('nav');
+        nav.replaceChildren();
+
+        shows.forEach(show => {
+            const h3 = document.createElement('h3');
+            if (show[0]) h3.append(show[0].show);
+            const menu = document.createElement('menu');
+
+            show.forEach(season => {
+                const li = document.createElement('li');
+                const img = document.createElement('img');
+                img.src = season.poster;
+                li.append(img, " ", season.title);
+                menu.append(li);
+            });
+
+            nav.append(h3, menu);
+        });
     }
 
     #dispatch(selection) {
         this.dispatchEvent(new CustomEvent("to-shows", { bubbles: true, composed: true, detail: { action: "selection", data: {selection} }}));
-    }
-
-    #orderByName(a, b) {
-        const titleA = a.name.toUpperCase();
-        const titleB = b.name.toUpperCase();
-        if (titleA < titleB) return -1;
-        if (titleA > titleB) return 1;
-        return 0;
     }
 }
 
