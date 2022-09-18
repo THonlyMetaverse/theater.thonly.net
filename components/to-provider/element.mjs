@@ -6,8 +6,8 @@ class ToProvider extends HTMLElement {
     #Shows;
     #store = {
         selection: null,
-        counter: null, // current movie or episode
-        time: null,
+        counter: 0, // current movie or episode
+        time: 0, // seconds
         volume: null
     };
 
@@ -43,10 +43,13 @@ class ToProvider extends HTMLElement {
 
     async #createStore() {
         this.#store = localStorage.getItem('store') ? JSON.parse(localStorage.getItem('store')) : this.#store;
+        const movies = await this.#movies;
+        const shows = await this.#shows;
+        this.#store.selection = this.#store.selection || movies[0][0];
 
         this.#theaterComponent.render(this.#store);
-        this.#moviesComponent.render(this.#store, await this.#movies);
-        this.#showsComponent.render(this.#store, await this.#shows);
+        this.#moviesComponent.render(this.#store, movies);
+        this.#showsComponent.render(this.#store, shows);
     }
 
     #reducers(component, { action, data }) {
@@ -94,11 +97,11 @@ class ToProvider extends HTMLElement {
         this.#Shows = await new Database("Shows", "id", Object.keys(data.shows), ["title", "year"]);
 
         for (let genre of this.#Movies.db.objectStoreNames) {
-            data.movies[genre].forEach(movie => this.#Movies.updateEntry(this.#Movies.getObjectStore(genre, 'readwrite'), { genre, ...movie }));
+            data.movies[genre].forEach(movie => this.#Movies.updateEntry(this.#Movies.getObjectStore(genre, 'readwrite'), { category: "movies", genre, ...movie }));
         }
 
         for (let show of this.#Shows.db.objectStoreNames) {
-            data.shows[show].forEach(season => this.#Shows.updateEntry(this.#Shows.getObjectStore(show, 'readwrite'), { show, ...season }));
+            data.shows[show].forEach(season => this.#Shows.updateEntry(this.#Shows.getObjectStore(show, 'readwrite'), { category: "shows", show, ...season }));
         }   
         
         this.#createStore();

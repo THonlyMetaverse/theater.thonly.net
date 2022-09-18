@@ -24,8 +24,7 @@ class ToShows extends HTMLElement {
     }
 
     #renderCollection(store, shows) {
-        const nav = this.shadowRoot.querySelector('nav');
-        nav.replaceChildren();
+        const fragment = document.createDocumentFragment();
 
         shows.forEach(show => {
             const h3 = document.createElement('h3');
@@ -45,8 +44,11 @@ class ToShows extends HTMLElement {
                 menu.append(li);
             });
 
-            nav.append(h3, menu);
+            fragment.append(h3, menu);
         });
+
+        const nav = this.shadowRoot.querySelector('nav');
+        nav.replaceChildren(fragment);
     }
 
     #dispatch(selection) {

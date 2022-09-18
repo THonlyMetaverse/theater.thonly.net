@@ -38,7 +38,7 @@ async function getMovie(title, path) {
     movie.title = title;
     movie.film = path + "/film.mp4";
     movie.poster = path + "/poster.jpg";
-    movie.english = fs.existsSync(path + "/english.srt") ? path + "/english.srt" : null;
+    movie.english = fs.existsSync(path + "/english.vtt") ? path + "/english.vtt" : null;
     //({ default: movie.meta } = await import("../" + path + "/meta.mjs"));
     return movie;
 }
