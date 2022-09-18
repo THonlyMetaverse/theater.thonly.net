@@ -8,7 +8,22 @@ class ToShows extends HTMLElement {
     }
 
     render(store, shows) {
-        console.log(shows)
+        //console.log(shows)
+        //this.#renderSelection(store, shows);
+        this.#renderCollection(store, shows);
+    }
+
+    #renderSelection(store, shows) {
+        const season = store.selection || shows[0][0];
+        const aside = this.shadowRoot.querySelector('aside');
+        aside.replaceChildren();
+
+        const p = document.createElement('p');
+        p.textContent = `${season.title} (${season.year})`;
+        aside.append(p);
+    }
+
+    #renderCollection(store, shows) {
         const nav = this.shadowRoot.querySelector('nav');
         nav.replaceChildren();
 
@@ -20,8 +35,13 @@ class ToShows extends HTMLElement {
             show.forEach(season => {
                 const li = document.createElement('li');
                 const img = document.createElement('img');
+                const a = document.createElement('a');
                 img.src = season.poster;
-                li.append(img, " ", season.title);
+                img.onclick = () => this.#dispatch(season);
+                a.textContent = `${season.title} (${season.year})`;
+                a.href = season.wikipedia;
+                a.target = "_blank";
+                li.append(img, a);
                 menu.append(li);
             });
 

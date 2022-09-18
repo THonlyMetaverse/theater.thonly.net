@@ -8,7 +8,22 @@ class ToMovies extends HTMLElement {
     }
 
     render(store, movies) {
-        console.log(movies)
+        //console.log(movies)
+        //this.#renderSelection(store, movies);
+        this.#renderCollection(store, movies);
+    }
+
+    #renderSelection(store, movies) {
+        const movie = store.selection || movies[0][0];
+        const aside = this.shadowRoot.querySelector('aside');
+        aside.replaceChildren();
+
+        const p = document.createElement('p');
+        p.textContent = `${movie.title} (${movie.year})`;
+        aside.append(p);
+    }
+
+    #renderCollection(store, movies) {
         const nav = this.shadowRoot.querySelector('nav');
         nav.replaceChildren();
 
@@ -20,8 +35,13 @@ class ToMovies extends HTMLElement {
             genre.forEach(movie => {
                 const li = document.createElement('li');
                 const img = document.createElement('img');
+                const a = document.createElement('a');
                 img.src = movie.poster;
-                li.append(img, " ", movie.title);
+                img.onclick = () => this.#dispatch(movie);
+                a.textContent = `${movie.title} (${movie.year})`;
+                a.href = movie.wikipedia;
+                a.target = "_blank";
+                li.append(img, a);
                 menu.append(li);
             });
 

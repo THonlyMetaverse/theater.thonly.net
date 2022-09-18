@@ -4,10 +4,9 @@ import Database from "./database.mjs";
 class ToProvider extends HTMLElement {
     #Movies;
     #Shows;
-    #store = { // current
-        database: null, // movies or shows
-        store: null,
-        id: null,
+    #store = {
+        selection: null,
+        counter: null, // current movie or episode
         time: null,
         volume: null
     };
@@ -37,20 +36,20 @@ class ToProvider extends HTMLElement {
     }
 
     #connect() {
-        this.#theaterComponent.addEventListener('to-theater', event => this.#reducers("theater", event.detail.action, event.detail.data));
-        this.#theaterComponent.addEventListener('to-movies', event => this.#reducers("movies", event.detail.action, event.detail.data));
-        this.#theaterComponent.addEventListener('to-shows', event => this.#reducers("shows", event.detail.action, event.detail.data));
+        this.addEventListener('to-theater', event => this.#reducers("theater", event.detail));
+        this.addEventListener('to-movies', event => this.#reducers("movies", event.detail));
+        this.addEventListener('to-shows', event => this.#reducers("shows", event.detail));
     }
 
     async #createStore() {
         this.#store = localStorage.getItem('store') ? JSON.parse(localStorage.getItem('store')) : this.#store;
 
-        this.#theaterComponent.render(this.#store, await this.#selection);
+        this.#theaterComponent.render(this.#store);
         this.#moviesComponent.render(this.#store, await this.#movies);
         this.#showsComponent.render(this.#store, await this.#shows);
     }
 
-    #reducers(component, action, data) {
+    #reducers(component, { action, data }) {
         this.#middleware();
 
         switch(component) {
@@ -69,12 +68,14 @@ class ToProvider extends HTMLElement {
             case "movies":
                 switch (action) {
                     case "selection":
+                        console.log(data.selection)
                         break;
                 }
                 break;
             case "shows":
                 switch (action) {
                     case "selection":
+                        console.log(data.selection)
                         break;
                 }
                 break;
@@ -103,6 +104,7 @@ class ToProvider extends HTMLElement {
         this.#createStore();
     }
 
+    // deprecated
     get #selection() {
         return (async () => {
             if (this.#store.id) return this.#store.database === "movies" ? await this.#Movies.getEntry(this.#Movies.getObjectStore(this.#store.store, 'readonly'), this.#store.id) : await this.#Shows.getEntry(this.#Shows.getObjectStore(this.#store.store, 'readonly'), this.#store.id);
@@ -145,6 +147,7 @@ class ToProvider extends HTMLElement {
         console.log(await this.#Movies.clearObjectStore(movies));
     }
 
+    // deprecated
     test2() {
         const movies = this.#Movies.getObjectStore("Anime", 'readwrite');
         this.#Movies.addEntry(movies, {id: "1", title: "Avatar"}, event => console.log(event));

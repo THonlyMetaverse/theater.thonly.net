@@ -4,6 +4,7 @@ template.innerHTML = `
     <link rel="stylesheet" href="components/to-movies/shadow.css">
     <fieldset>
         <legend><h2>Movies</h2></legend>
+        <aside></aside>
         <nav></nav>
     </fieldset>   
 `;

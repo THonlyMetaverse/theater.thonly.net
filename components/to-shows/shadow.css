@@ -11,4 +11,13 @@ menu {
 
 img {
     width: 100px;
+    margin: 0 30px;
+}
+
+li {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    margin: 30px 0;
 }
