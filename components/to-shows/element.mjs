@@ -9,21 +9,35 @@ class ToShows extends HTMLElement {
 
     render(store, shows) {
         //console.log(shows)
-        //this.#renderSelection(store, shows);
-        this.#renderCollection(store, shows);
+        this.renderSelection(store.selection || shows[0][0], store.counter);
+        this.#renderCollection(shows);
     }
 
-    #renderSelection(store, shows) {
-        const season = store.selection || shows[0][0];
-        const aside = this.shadowRoot.querySelector('aside');
-        aside.replaceChildren();
+    renderSelection(season, episode) {
+        const fragment = document.createDocumentFragment();
 
-        const p = document.createElement('p');
-        p.textContent = `${season.title} (${season.year})`;
-        aside.append(p);
+        const a = document.createElement('a');
+        const select = document.createElement('select');
+        fragment.append(a, document.createElement('br'), document.createElement('br'), select);
+
+        a.textContent = `${season.title} (${season.year})`;
+        a.href = season.wikipedia;
+        a.target = "_blank";
+
+        select.onchange = () => this.#dispatch(season, parseInt(select.value));
+
+        for (let number = 1; number <= season.episodes; number++) {
+            const option = document.createElement('option');
+            option.value = number;
+            option.textContent = "Episode " + number;
+            option.selected = number === episode;
+            select.append(option);
+        }
+
+        this.shadowRoot.querySelector('aside').replaceChildren(fragment);
     }
 
-    #renderCollection(store, shows) {
+    #renderCollection(shows) {
         const fragment = document.createDocumentFragment();
 
         shows.forEach(show => {
@@ -36,9 +50,9 @@ class ToShows extends HTMLElement {
                 const img = document.createElement('img');
                 const a = document.createElement('a');
                 img.src = season.poster;
-                img.onclick = () => this.#dispatch(season);
+                img.onclick = () => this.#dispatch(season, 1);
                 a.textContent = `${season.title} (${season.year})`;
-                a.href = season.wikipedia;
+                a.href = season.series;
                 a.target = "_blank";
                 li.append(img, a);
                 menu.append(li);
@@ -47,12 +61,11 @@ class ToShows extends HTMLElement {
             fragment.append(h3, menu);
         });
 
-        const nav = this.shadowRoot.querySelector('nav');
-        nav.replaceChildren(fragment);
+        this.shadowRoot.querySelector('nav').replaceChildren(fragment);
     }
 
-    #dispatch(selection) {
-        this.dispatchEvent(new CustomEvent("to-shows", { bubbles: true, composed: true, detail: { action: "selection", data: {selection} }}));
+    #dispatch(selection, episode) {
+        this.dispatchEvent(new CustomEvent("to-shows", { bubbles: true, composed: true, detail: { action: "selection", data: { selection, episode } }}));
     }
 }
 

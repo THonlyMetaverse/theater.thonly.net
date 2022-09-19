@@ -23,6 +23,7 @@ class ToMovies extends HTMLElement {
         aside.append(p);
     }
 
+    // TODO: later highlight selected movie ?
     #renderCollection(store, movies) {
         const fragment = document.createDocumentFragment();
 
@@ -47,8 +48,7 @@ class ToMovies extends HTMLElement {
             fragment.append(h3, menu);
         });
 
-        const nav = this.shadowRoot.querySelector('nav');
-        nav.replaceChildren(fragment);
+        this.shadowRoot.querySelector('nav').replaceChildren(fragment);
     }
 
     #dispatch(selection, pointer) {

@@ -6,7 +6,7 @@ class ToProvider extends HTMLElement {
     #Shows;
     #store = {
         selection: null,
-        counter: null, // movie = [genre, movie] / episode = 0
+        counter: null, // movie = [genre, movie] / episode = 1
         time: 0, // seconds
         volume: 1, // percent
         muted: false
@@ -71,7 +71,8 @@ class ToProvider extends HTMLElement {
                             this.#store.selection = movies[this.#store.counter[0]][this.#store.counter[1]];
                         } else if (this.#store.selection.category === "shows") {
                             this.#store.counter -= 1;
-                            if (this.#store.counter === -1) this.#store.counter = this.#store.selection.episodes - 1; // TODO: go to next season? ep 1
+                            if (this.#store.counter === 0) this.#store.counter = this.#store.selection.episodes; // TODO: go to next season? ep 1
+                            this.#showsComponent.renderSelection(this.#store.selection, this.#store.counter);
                         }
                         this.#store.time = 0;
                         this.#theaterComponent.render(this.#store);
@@ -84,7 +85,8 @@ class ToProvider extends HTMLElement {
                             this.#store.selection = movies[this.#store.counter[0]][this.#store.counter[1]];
                         } else if (this.#store.selection.category === "shows") {
                             this.#store.counter += 1;
-                            if (this.#store.counter === this.#store.selection.episodes) this.#store.counter = 0; // TODO: go to next season? ep 1
+                            if (this.#store.counter === this.#store.selection.episodes + 1) this.#store.counter = 1; // TODO: go to next season? ep 1
+                            this.#showsComponent.renderSelection(this.#store.selection, this.#store.counter);
                         }
                         this.#store.time = 0;
                         this.#theaterComponent.render(this.#store);
@@ -107,13 +109,21 @@ class ToProvider extends HTMLElement {
                         this.#store.volume = 1;
                         this.#store.muted = false;
                         this.#theaterComponent.render(this.#store);
+                        this.scrollIntoView({ behavior: "smooth", block: "start", inline: "center" });
                         break;
                 }
                 break;
             case "shows":
                 switch (action) {
                     case "selection":
-                        console.log(data.selection)
+                        this.#store.selection = data.selection;
+                        this.#store.counter = data.episode;
+                        this.#store.time = 0;
+                        this.#store.volume = 1;
+                        this.#store.muted = false;
+                        this.#theaterComponent.render(this.#store);
+                        this.#showsComponent.renderSelection(this.#store.selection, this.#store.counter);
+                        this.scrollIntoView({ behavior: "smooth", block: "start", inline: "center" });
                         break;
                 }
                 break;

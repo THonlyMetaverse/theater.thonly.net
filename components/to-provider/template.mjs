@@ -5,7 +5,7 @@ template.innerHTML = `
     <slot></slot>
     <br>
     <button onclick="this.getRootNode().host.refreshLibrary()">Refresh Library</button>
-    <button onclick="this.getRootNode().host.test()">Run Test</button>
+    <!--<button onclick="this.getRootNode().host.test()">Run Test</button>-->
 `;
 
 export default template;

@@ -17,17 +17,7 @@ class ToTheater extends HTMLElement {
         this.#video.addEventListener('ended', event => this.dispatch('next', event));
     }
 
-    render(store) {
-        this.play(store.selection);
-    }
-
-    set init(store) {
-        this.#video.currentTime = store.time;
-        this.#video.volume = store.volume;
-        this.#video.muted = store.muted;
-    }
-
-    play(selection) {
+    render({ selection, counter }) {
         switch (selection.category) {
             case "movies":
                 this.#video.poster = selection.poster;
@@ -35,8 +25,17 @@ class ToTheater extends HTMLElement {
                 if (selection.english) this.#video.firstElementChild.src = selection.english;
                 break;
             case "shows":
+                this.#video.poster = selection.poster;
+                this.#video.src = `${selection.path}/${counter}.mp4`;
+                //console.log(counter)
                 break;
         }
+    }
+
+    set init({ time, volume, muted }) {
+        this.#video.currentTime = time;
+        this.#video.volume = volume;
+        this.#video.muted = muted;
     }
 
     dispatch(action, event) {
