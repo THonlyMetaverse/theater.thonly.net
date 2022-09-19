@@ -1,9 +1,9 @@
 :host {
     width: 100%;
     height: 100%;
+    text-align: center;
 }
 
-img, audio, video {
+video {
     width: 100%;
-    display: none;
 }

@@ -26,17 +26,17 @@ class ToMovies extends HTMLElement {
     #renderCollection(store, movies) {
         const fragment = document.createDocumentFragment();
 
-        movies.forEach(genre => {
+        movies.forEach((genre, g) => {
             const h3 = document.createElement('h3');
             h3.append(genre[0].genre);
             const menu = document.createElement('menu');
 
-            genre.forEach(movie => {
+            genre.forEach((movie, m) => {
                 const li = document.createElement('li');
                 const img = document.createElement('img');
                 const a = document.createElement('a');
                 img.src = movie.poster;
-                img.onclick = () => this.#dispatch(movie);
+                img.onclick = () => this.#dispatch(movie, [g, m]);
                 a.textContent = `${movie.title} (${movie.year})`;
                 a.href = movie.wikipedia;
                 a.target = "_blank";
@@ -51,8 +51,8 @@ class ToMovies extends HTMLElement {
         nav.replaceChildren(fragment);
     }
 
-    #dispatch(selection) {
-        this.dispatchEvent(new CustomEvent("to-movies", { bubbles: true, composed: true, detail: { action: "selection", data: {selection} }}));
+    #dispatch(selection, pointer) {
+        this.dispatchEvent(new CustomEvent("to-movies", { bubbles: true, composed: true, detail: { action: "selection", data: {selection, pointer} }}));
     }
 }
 

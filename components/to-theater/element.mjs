@@ -11,14 +11,20 @@ class ToTheater extends HTMLElement {
     }
 
     connectedCallback() {
-        this.addEventListener('loadedmetadata', event => this.dispatch('load', event));
-        this.addEventListener('volumechange', event => this.dispatch('volume', event));
-        this.addEventListener('timeupdate', event => this.dispatch('time', event));
-        this.addEventListener('ended', event => this.dispatch('next', event));
+        this.#video.addEventListener('loadedmetadata', event => this.dispatch('load', event));
+        this.#video.addEventListener('volumechange', event => this.dispatch('volume', event));
+        this.#video.addEventListener('timeupdate', event => this.dispatch('time', event));
+        this.#video.addEventListener('ended', event => this.dispatch('next', event));
     }
 
     render(store) {
         this.play(store.selection);
+    }
+
+    set init(store) {
+        this.#video.currentTime = store.time;
+        this.#video.volume = store.volume;
+        this.#video.muted = store.muted;
     }
 
     play(selection) {
@@ -33,21 +39,30 @@ class ToTheater extends HTMLElement {
         }
     }
 
-    #dispatch(action, event) {
+    dispatch(action, event) {
+        //console.log(event)
+        const data = {};
+
         switch (action) {
             case "load":
+                data.event = event;
                 break;
             case "next":
+                data.event = event;
                 break;
             case "previous":
+                data.event = event;
                 break;
             case "time":
+                data.time = event.currentTarget.currentTime;
                 break;
             case "volume":
+                data.volume = event.currentTarget.volume;
+                data.muted = event.currentTarget.muted;
                 break;  
         }
-
-        this.dispatchEvent(new CustomEvent("to-theater", { bubbles: true, composed: true, detail: { action, data: {} }}));
+        
+        this.dispatchEvent(new CustomEvent("to-theater", { bubbles: true, composed: true, detail: { action, data }}));
     }
 }
 

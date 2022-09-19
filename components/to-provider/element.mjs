@@ -6,9 +6,10 @@ class ToProvider extends HTMLElement {
     #Shows;
     #store = {
         selection: null,
-        counter: 0, // current movie or episode
+        counter: null, // movie = [genre, movie] / episode = 0
         time: 0, // seconds
-        volume: null
+        volume: 1, // percent
+        muted: false
     };
 
     #theaterComponent;
@@ -52,26 +53,60 @@ class ToProvider extends HTMLElement {
         this.#showsComponent.render(this.#store, shows);
     }
 
-    #reducers(component, { action, data }) {
+    async #reducers(component, { action, data }) {
         this.#middleware();
 
         switch(component) {
             case "theater":
                 switch (action) {
+                    case "load":
+                        //console.log(data.event);
+                        this.#theaterComponent.init = this.#store;
+                        break;
                     case "previous":
+                        if (this.#store.selection.category === "movies") {
+                            const movies = await this.#movies;
+                            this.#store.counter[1] -= 1;
+                            if (this.#store.counter[1] === -1) this.#store.counter[1] = movies[this.#store.counter[0]].length - 1;
+                            this.#store.selection = movies[this.#store.counter[0]][this.#store.counter[1]];
+                        } else if (this.#store.selection.category === "shows") {
+                            this.#store.counter -= 1;
+                            if (this.#store.counter === -1) this.#store.counter = this.#store.selection.episodes - 1; // TODO: go to next season? ep 1
+                        }
+                        this.#store.time = 0;
+                        this.#theaterComponent.render(this.#store);
                         break;
                     case "next":
+                        if (this.#store.selection.category === "movies") {
+                            const movies = await this.#movies;
+                            this.#store.counter[1] += 1;
+                            if (this.#store.counter[1] === movies[this.#store.counter[0]].length) this.#store.counter[1] = 0;
+                            this.#store.selection = movies[this.#store.counter[0]][this.#store.counter[1]];
+                        } else if (this.#store.selection.category === "shows") {
+                            this.#store.counter += 1;
+                            if (this.#store.counter === this.#store.selection.episodes) this.#store.counter = 0; // TODO: go to next season? ep 1
+                        }
+                        this.#store.time = 0;
+                        this.#theaterComponent.render(this.#store);
                         break;
                     case "time":
+                        this.#store.time = data.time;
                         break;
                     case "volume":
+                        this.#store.volume = data.volume;
+                        this.#store.muted = data.muted;
                         break;
                 }
                 break;
             case "movies":
                 switch (action) {
                     case "selection":
-                        console.log(data.selection)
+                        this.#store.selection = data.selection;
+                        this.#store.counter = data.pointer;
+                        this.#store.time = 0;
+                        this.#store.volume = 1;
+                        this.#store.muted = false;
+                        this.#theaterComponent.render(this.#store);
                         break;
                 }
                 break;
