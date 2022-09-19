@@ -29,7 +29,9 @@ class ToProvider extends HTMLElement {
     async connectedCallback() {
         this.#connect();
         const databases = await indexedDB.databases();
-        if (databases.length !== 0) {
+        if (databases.length === 0) {
+            this.refreshLibrary();
+        } else {
             this.#Movies = await new Database(databases[0].name);
             this.#Shows = await new Database(databases[1].name);
             this.#createStore();
