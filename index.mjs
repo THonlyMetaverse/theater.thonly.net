@@ -9,6 +9,7 @@ const cert = fs.readFileSync('private/fullchain.pem');
 const key = fs.readFileSync('private/privkey.pem');
 
 const app = express();
+app.use('/library', express.static('library'));
 app.use(cors());
 
 app.get('/', async (req, res) => {
