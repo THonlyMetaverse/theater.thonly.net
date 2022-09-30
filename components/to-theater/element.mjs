@@ -2,7 +2,7 @@ import template from "./template.mjs";
 
 class ToTheater extends HTMLElement {
     #video;
-    #origin = window.location.hostname === "theater.thonly.net" ? "https://dns.thonly.net" : "";
+    #origin = window.location.hostname === "theater.thonly.net" ? "https://dns.thonly.net/" : "";
 
     constructor() {
         super();
