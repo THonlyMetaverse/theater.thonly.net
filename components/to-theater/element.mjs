@@ -2,6 +2,7 @@ import template from "./template.mjs";
 
 class ToTheater extends HTMLElement {
     #video;
+    #origin = window.location.hostname === "https://theater.thonly.net" ? "https://dns.thonly.net" : "";
 
     constructor() {
         super();
@@ -21,12 +22,12 @@ class ToTheater extends HTMLElement {
         switch (selection.category) {
             case "movies":
                 this.#video.poster = selection.poster;
-                this.#video.src = selection.film;
+                this.#video.src = this.#origin + selection.film;
                 if (selection.english) this.#video.firstElementChild.src = selection.english;
                 break;
             case "shows":
                 this.#video.poster = selection.poster;
-                this.#video.src = `${selection.path}/${counter}.mp4`;
+                this.#video.src = this.#origin + `${selection.path}/${counter}.mp4`;
                 //console.log(counter)
                 break;
         }
